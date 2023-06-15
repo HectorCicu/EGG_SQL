@@ -54,12 +54,55 @@ from jugadores as j;
 /*11. Mostrar el número de jugadores de cada equipo.*/
 select Nombre_equipo, count(1) as  'Cant Jugadores' from jugadores
 group by Nombre_equipo;
+
+
 /*12. Mostrar el jugador que más puntos ha realizado en toda su carrera.*/
+select jugador, nombre, Puntos_por_partido from estadisticas
+join jugadores on
+jugador = codigo
+group by jugador, Nombre, Puntos_por_partido
+order by puntos_por_partido desc
+limit 1;
+
 /*13. Mostrar el nombre del equipo, conferencia y división del jugador más alto de la NBA.*/
+select j.nombre, j.nombre_equipo, e.Conferencia, altura from jugadores as j
+join equipos as e
+on j.nombre_equipo = e.Nombre
+group by j.nombre, j.Nombre_equipo, e.Conferencia, altura
+order by altura desc
+limit 1;
+
 /*14. Mostrar la media de puntos en partidos de los equipos de la división Pacific.*/
+select avg(p.puntos_local) as 'Promedio Local', avg(p.puntos_visitante) as 'Promedio Visitante' from partidos as p
+join equipos as l
+on p.equipo_local = l.Nombre
+join equipos as v
+on p.equipo_visitante = v.Nombre
+where l.division = 'Pacific' and v.Division = 'Pacific';
 /*15. Mostrar el partido o partidos (equipo_local, equipo_visitante y diferencia) con mayor
 diferencia de puntos.*/
+select equipo_local  as  'Eq. Local', puntos_local as 'Puntos Local',
+equipo_visitante as 'Eq. Visitante',  puntos_visitante as 'Puntos Visitantes',
+ abs(puntos_local - puntos_visitante) as 'Diferencia' , temporada from partidos
+ order by abs(puntos_local - puntos_visitante) desc
+ limit 1;
 /*16. Mostrar la media de puntos en partidos de los equipos de la división Pacific.*/
+select avg(p.puntos_local) as 'Promedio Local', avg(p.puntos_visitante) as 'Promedio Visitante' from partidos as p
+join equipos as l
+on p.equipo_local = l.Nombre
+join equipos as v
+on p.equipo_visitante = v.Nombre
+where l.division = 'Pacific' and v.Division = 'Pacific';
 /*17. Mostrar los puntos de cada equipo en los partidos, tanto de local como de visitante.*/
+select e.nombre, 
+(select sum(pl.puntos_local) from partidos as pl where e.nombre = equipo_local) as 'Puntos de Local',
+(select sum(pl.puntos_visitante) from partidos as pl where e.nombre = equipo_local) as 'Puntos de Visitante' 
+from equipos as e;
+
 /*18. Mostrar quien gana en cada partido (codigo, equipo_local, equipo_visitante,
-equipo_ganador), en caso de empate sera null.*/select * from equipos as e join jugadores as j on e.nombre = j.Nombre_equipo order by e.nombre_equipo asc LIMIT 0, 1000
+equipo_ganador), en caso de empate sera null.*/
+select codigo, equipo_local, puntos_local, equipo_visitante , puntos_visitante
+, case when puntos_local > puntos_visitante then equipo_local
+       when puntos_local < puntos_visitante then equipo_visitante
+       else null end as 'Equipo Ganador'
+from partidos;
