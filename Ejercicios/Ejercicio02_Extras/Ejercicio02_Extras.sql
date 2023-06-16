@@ -11,6 +11,8 @@ código de jefe igual a 7.*/
 select nombre, apellido1, apellido2, email from empleado 
 where codigo_jefe = 7;
 
+select * from empleado where codigo_jefe = 3  order by nombre asc limit 2;
+
 /*4. Devuelve el nombre del puesto, nombre, apellidos y email del jefe de la empresa.*/
 select puesto, nombre, apellido1, apellido2, email from  empleado
 where codigo_jefe is null;
@@ -89,9 +91,13 @@ select * from producto
 
 /*16. Devuelve un listado con todos los clientes que sean de la ciudad de Madrid y cuyo
 representante de ventas tenga el código de empleado 11 o 30.*/
-select * from cliente 
-  where ciudad = 'madrid'
-  and codigo_empleado_rep_ventas in (11,30);
+SELECT 
+    *
+FROM
+    cliente
+WHERE
+    ciudad = 'madrid'
+        AND codigo_empleado_rep_ventas IN (11 , 30);
   
 /*Consultas multitabla (Composición interna)*/
 /*Las consultas se deben resolver con INNER JOIN.*/
@@ -104,35 +110,270 @@ select nombre_cliente, nombre, apellido1, apellido2
 
 /*2. Muestra el nombre de los clientes que hayan realizado pagos junto con el nombre de sus
 representantes de ventas.*/
-/*3. Muestra el nombre de los clientes que no hayan realizado pagos junto con el nombre de
-sus representantes de ventas.*/
+SELECT 
+    c.nombre_cliente AS 'Razón Social',
+    c.codigo_empleado_rep_ventas,
+    e.codigo_empleado as 'Codigo tabla empleado',
+    e.nombre AS 'Nombre Rep. Vtas.',
+    e.apellido1 AS 'Apellido',
+    e.apellido2 AS 'Segundo Apellido'
+FROM
+    cliente AS c
+        INNER JOIN
+    empleado AS e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+        INNER JOIN
+    pago AS p ON c.codigo_cliente = p.codigo_cliente
+GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2, c.codigo_empleado_rep_ventas, e.codigo_empleado;
+
+/* 3. Muestra el nombre de los clientes que no hayan realizado pagos junto con el nombre de
+sus representantes de ventas. */
+SELECT 
+    c.nombre_cliente AS 'Razón Social',
+    c.codigo_empleado_rep_ventas,
+    e.codigo_empleado as 'Codigo tabla empleado',
+    e.nombre AS 'Nombre Rep. Vtas.',
+    e.apellido1 AS 'Apellido',
+    e.apellido2 AS 'Segundo Apellido'
+ 
+FROM
+    cliente AS c
+        INNER JOIN
+    empleado AS e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+        left JOIN
+    pago AS p ON c.codigo_cliente = p.codigo_cliente
+WHERE
+  ( p.total is null)
+GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2, c.codigo_empleado_rep_ventas, e.codigo_empleado;
+
 /*4. Devuelve el nombre de los clientes que han hecho pagos y el nombre de sus representantes
 junto con la ciudad de la oficina a la que pertenece el representante.*/
+SELECT 
+    c.nombre_cliente AS 'Razón Social',
+    e.nombre AS 'Nombre Rep. Vtas.',
+    e.apellido1 AS 'Apellido',
+    e.apellido2 AS 'Segundo Apellido',
+    o.ciudad AS 'Localidad Oficina'
+FROM
+    cliente AS c
+        INNER JOIN
+    empleado AS e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+        INNER JOIN
+    oficina AS o ON e.codigo_oficina = o.codigo_oficina
+        LEFT JOIN
+    pago AS p ON c.codigo_cliente = p.codigo_cliente
+WHERE
+    p.total > 0
+GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2 , o.ciudad;
+
 /*5. Devuelve el nombre de los clientes que no hayan hecho pagos y el nombre de sus
 representantes junto con la ciudad de la oficina a la que pertenece el representante.*/
+SELECT 
+    c.nombre_cliente AS 'Razón Social',
+    e.nombre AS 'Nombre Rep. Vtas.',
+    e.apellido1 AS 'Apellido',
+    e.apellido2 AS 'Segundo Apellido',
+    o.ciudad AS 'Localidad Oficina'
+FROM
+    cliente AS c
+        INNER JOIN
+    empleado AS e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+        INNER JOIN
+    oficina AS o ON e.codigo_oficina = o.codigo_oficina
+WHERE
+    (SELECT 
+            COUNT(1)
+        FROM
+            pago AS p
+        WHERE
+            c.codigo_cliente = p.codigo_cliente) = 0
+GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2 , o.ciudad;
+
 /*6. Lista la dirección de las oficinas que tengan clientes en Fuenlabrada.*/
+SELECT 
+    o.codigo_oficina,
+    o.ciudad,
+    o.pais,
+    o.region,
+    o.codigo_postal,
+    o.linea_direccion1,
+    o.linea_direccion2,
+    c.nombre_cliente,
+    e.nombre,
+    e.apellido1,
+    e.apellido2,
+    c.linea_direccion2
+FROM
+    oficina AS o
+        INNER JOIN
+    empleado AS e ON o.codigo_oficina = e.codigo_oficina
+        INNER JOIN
+    cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+WHERE
+     c.linea_direccion2 = 'FUENLABRADA' ;
+
 /*7. Devuelve el nombre de los clientes y el nombre de sus representantes junto con la ciudad
 de la oficina a la que pertenece el representante.*/
+SELECT 
+    o.codigo_oficina,
+    o.ciudad,
+    o.pais,
+    o.region,
+    o.codigo_postal,
+    o.linea_direccion1,
+    o.linea_direccion2,
+    c.nombre_cliente,
+    e.nombre as 'Nombre Rep. Vtas.',
+    e.apellido1 as 'Apellido',
+    e.apellido2 as 'Apellido 2',
+    c.linea_direccion2
+FROM
+    oficina AS o
+        INNER JOIN
+    empleado AS e ON o.codigo_oficina = e.codigo_oficina
+        INNER JOIN
+    cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas;
+
 /*8. Devuelve un listado con el nombre de los empleados junto con el nombre de sus jefes.*/
-/*9. Devuelve el nombre de los clientes a los que no se les ha entregado a tiempo un pedido.*/
-/*10. Devuelve un listado de las diferentes gamas de producto que ha comprado cada cliente.*/
+SELECT 
+    e.codigo_empleado,
+    e.nombre AS 'Nombre Empleado',
+    e.apellido1 AS 'Apellido Empleado',
+    e.apellido2 AS 'Apellido 2 empleado',
+    e.codigo_jefe AS 'Cód jefe del empleado',
+    e.puesto AS 'Puesto del Empleado',
+    j.nombre AS 'Nombre Jefe',
+    j.apellido1 AS 'Apellido Jefe',
+    j.apellido2 AS 'Apellido2 jefe',
+    j.puesto AS 'Puesto del jefe'
+FROM
+    empleado AS e
+        JOIN
+    empleado AS j ON e.codigo_jefe = j.codigo_empleado;
+   
+/*   9. Devuelve el nombre de los clientes a los que no se les ha entregado a tiempo un pedido.*/
+SELECT 
+    c.nombre_cliente
+FROM
+    cliente AS c
+        INNER JOIN
+    pedido AS p ON c.codigo_cliente = p.codigo_cliente
+WHERE
+    fecha_entrega < fecha_esperada;
+
+/*10. Devuelve un listado de las diferentes gamas de producto que ha comprado cada cliente*/
+SELECT 
+    c.nombre_cliente,
+    g.gama,
+    g.descripcion_texto,
+    g.descripcion_html,
+    g.imagen
+FROM
+    cliente AS c
+        INNER JOIN
+    pedido AS p ON c.codigo_cliente = p.codigo_cliente
+        INNER JOIN
+    detalle_pedido AS d ON p.codigo_pedido = d.codigo_pedido
+        INNER JOIN
+    producto AS pr ON d.codigo_producto = pr.codigo_producto
+        INNER JOIN
+    gama_producto AS g ON pr.gama = g.gama
+GROUP BY c.nombre_cliente , g.gama , g.descripcion_texto , g.descripcion_html , g.imagen;
+
+
 /*Consultas multitabla (Composición externa)*/
 /*Resuelva todas las consultas utilizando las cláusulas LEFT JOIN, RIGHT JOIN, JOIN.*/
 /*1. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago.*/
+SELECT 
+    c.nombre_cliente AS 'Razón Social',
+    c.codigo_empleado_rep_ventas,
+    e.codigo_empleado as 'Codigo tabla empleado',
+    e.nombre AS 'Nombre Rep. Vtas.',
+    e.apellido1 AS 'Apellido',
+    e.apellido2 AS 'Segundo Apellido'
+ 
+FROM
+    cliente AS c
+        INNER JOIN
+    empleado AS e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
+        left JOIN
+    pago AS p ON c.codigo_cliente = p.codigo_cliente
+WHERE
+  ( p.total is null)
+GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2, c.codigo_empleado_rep_ventas, e.codigo_empleado;
+
 /*2. Devuelve un listado que muestre solamente los clientes que no han realizado ningún
 pedido.*/
+SELECT 
+    c.nombre_cliente
+FROM
+    cliente AS c
+        LEFT JOIN
+    pedido AS p ON c.codigo_cliente = p.codigo_cliente
+WHERE
+    p.codigo_cliente IS NULL;
+    
 /*3. Devuelve un listado que muestre los clientes que no han realizado ningún pago y los que
 no han realizado ningún pedido.*/
+SELECT 
+    c.nombre_cliente
+FROM
+    cliente AS c
+        LEFT JOIN
+    pedido AS p ON c.codigo_cliente = p.codigo_cliente
+        LEFT JOIN
+    pago AS pg ON c.codigo_cliente = pg.codigo_cliente
+WHERE
+    (p.codigo_cliente IS NULL
+        OR pg.codigo_cliente IS NULL)
+GROUP BY c.nombre_cliente;
+    
 /*4. Devuelve un listado que muestre solamente los empleados que no tienen una oficina
 asociada.*/
+SELECT 
+    *
+FROM
+    empleado
+WHERE
+    codigo_oficina IS NULL;
+    
 /*5. Devuelve un listado que muestre solamente los empleados que no tienen un cliente
 asociado.*/
+SELECT 
+    e.nombre, e.apellido1, e.apellido2
+FROM
+    empleado AS e
+        LEFT JOIN
+    cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+WHERE
+    c.codigo_empleado_rep_ventas IS NULL;
+    
 /*6. Devuelve un listado que muestre los empleados que no tienen una oficina asociada y los
 que no tienen un cliente asociado.*/
+SELECT 
+    e.nombre, e.apellido1, e.apellido2
+FROM
+    empleado AS e
+        LEFT JOIN
+    cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+WHERE
+    (codigo_oficina IS NULL
+        OR c.codigo_empleado_rep_ventas IS NULL)
+GROUP BY e.nombre , e.apellido1 , e.apellido2;
+    
 /*7. Devuelve un listado de los productos que nunca han aparecido en un pedido.*/
+SELECT 
+    p.codigo_producto, p.nombre, p.gama
+FROM
+    producto AS p
+        LEFT JOIN
+    detalle_pedido AS d ON p.codigo_producto = d.codigo_producto
+WHERE
+    d.codigo_producto IS NULL;
+
 /*8. Devuelve las oficinas donde no trabajan ninguno de los empleados que hayan sido los
 representantes de ventas de algún cliente que haya realizado la compra de algún producto
 de la gama Frutales.*/
+
 /*9. Devuelve un listado con los clientes que han realizado algún pedido, pero no han realizado
 ningún pago.*/
 /*10. Devuelve un listado con los datos de los empleados que no tienen clientes asociados y el
@@ -177,7 +418,7 @@ producto a partir de los datos de la tabla detalle_pedido. Una vez que sepa cuá
 del producto, puede obtener su nombre fácilmente.)*/
 /*4. Los clientes cuyo límite de crédito sea mayor que los pagos que haya realizado. (Sin utilizar
 INNER JOIN).*/
-/*5. Devuelve el producto que más unidades tiene en stock.
+/*5. Devuelve el producto que más unidades tiene en stock.*/
 /*6. Devuelve el producto que menos unidades tiene en stock.*/
 /*7. Devuelve el nombre, los apellidos y el email de los empleados que están a cargo de Alberto
 Soria.*/
