@@ -374,22 +374,120 @@ WHERE
 representantes de ventas de algún cliente que haya realizado la compra de algún producto
 de la gama Frutales.*/
 
+SELECT 
+    *
+FROM
+    oficina AS ofi
+WHERE
+    codigo_oficina != ALL (SELECT DISTINCT
+            (o.codigo_oficina)
+        FROM
+            oficina AS o
+                JOIN
+            empleado AS e ON o.codigo_oficina = e.codigo_oficina
+                JOIN
+            cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+                JOIN
+            pedido AS p ON c.codigo_cliente = p.codigo_cliente
+                JOIN
+            detalle_pedido AS d ON p.codigo_pedido = d.codigo_pedido
+                JOIN
+            producto AS g ON d.codigo_producto = g.codigo_producto
+                AND g.gama = 'frutales');
+
 /*9. Devuelve un listado con los clientes que han realizado algún pedido, pero no han realizado
 ningún pago.*/
+SELECT 
+    c.codigo_cliente,
+    c.nombre_cliente,
+    c.linea_direccion1,
+    c.ciudad,
+    c.region,
+    c.pais
+FROM
+    cliente AS c
+        JOIN
+    pedido AS p ON c.codigo_cliente = p.codigo_cliente
+        LEFT JOIN
+    pago AS pa ON c.codigo_cliente = pa.codigo_cliente
+WHERE
+    pa.codigo_cliente IS NULL
+GROUP BY c.codigo_cliente , c.nombre_cliente , c.linea_direccion1 , c.ciudad , c.region , c.pais
+;
 /*10. Devuelve un listado con los datos de los empleados que no tienen clientes asociados y el
 nombre de su jefe asociado.*/
+select 
+e.codigo_empleado, e.nombre, e.apellido1, e.apellido2, e.codigo_jefe, e.puesto, b.nombre as 'Nombre Jefe',
+b.apellido1 as 'Apellido', b.puesto as 'Puesto'
+ from empleado as e
+ left join cliente as c
+ on e.codigo_empleado = c.codigo_empleado_rep_ventas
+ left join empleado as b
+ on e.codigo_jefe = b.codigo_empleado
+ where c.codigo_empleado_rep_ventas is null;
+ 
 /*Consultas resumen*/
 /*1. ¿Cuántos empleados hay en la compañía?*/
+select count(1) from empleado;
+# hay 31 empleados
+
 /*2. ¿Cuántos clientes tiene cada país?*/
+select pais ,count(1) as 'Cant. clientes' from cliente
+group by pais;
+
 /*3. ¿Cuál fue el pago medio en 2009?*/
+select avg(total) from pago where year(fecha_pago) = 2009;
+# 4504.076923
+
 /*4. ¿Cuántos pedidos hay en cada estado? Ordena el resultado de forma descendente por el
 número de pedidos.*/
+SELECT 
+    estado, COUNT(1)
+FROM
+    pedido
+GROUP BY estado
+ORDER BY COUNT(1) DESC;
+
 /*5. Calcula el precio de venta del producto más caro y más barato en una misma consulta.*/
+select max(p.precio_venta) as 'Valor máx prod.' ,
+(select min(g.precio_venta) from producto as g) as 'Valor mín Producto'  from producto as p;
+
 /*6. Calcula el número de clientes que tiene la empresa.*/
+SELECT 
+    COUNT(1) AS 'Nro. Clientes'
+FROM
+    cliente;
+    
 /*7. ¿Cuántos clientes tiene la ciudad de Madrid?*/
+SELECT 
+    ciudad, COUNT(1) AS 'Nro. Clientes'
+FROM
+    cliente
+WHERE
+    ciudad = 'Madrid'
+GROUP BY ciudad;
+    
 /*8. ¿Calcula cuántos clientes tiene cada una de las ciudades que empiezan por M?*/
+SELECT 
+    ciudad, COUNT(1) AS 'Nro. Clientes'
+FROM
+    cliente
+WHERE
+    ciudad LIKE 'M%'
+GROUP BY ciudad;
+
 /*9. Devuelve el nombre de los representantes de ventas y el número de clientes al que atiende
 cada uno.*/
+	SELECT
+    e.nombre,
+    e.apellido1,
+    e.apellido2,     
+    (SELECT COUNT(1) FROM cliente AS c 
+    WHERE e.codigo_empleado = c.codigo_empleado_rep_ventas) AS 'Cantidad de Clientes'
+    FROM empleado AS e 
+    where (SELECT codigo_empleado FROM cliente AS c 
+    WHERE e.codigo_empleado = c.codigo_empleado_rep_ventas limit 1) is not null ;
+    
 /*10. Calcula el número de clientes que no tiene asignado representante de ventas.*/
 /*11. Calcula la fecha del primer y último pago realizado por cada uno de los clientes. El listado
 deberá mostrar el nombre y los apellidos de cada cliente.*/
