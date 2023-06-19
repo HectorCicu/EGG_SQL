@@ -489,39 +489,149 @@ cada uno.*/
     WHERE e.codigo_empleado = c.codigo_empleado_rep_ventas limit 1) is not null ;
     
 /*10. Calcula el número de clientes que no tiene asignado representante de ventas.*/
+select count(1) as 'Clientes Sin Rep.Vtas.' from cliente as c where
+(c.codigo_empleado_rep_ventas = 0 or c.codigo_empleado_rep_ventas is null);
+
 /*11. Calcula la fecha del primer y último pago realizado por cada uno de los clientes. El listado
 deberá mostrar el nombre y los apellidos de cada cliente.*/
+select c.codigo_cliente,c.nombre_cliente, max(p.fecha_pago) as 'Fecha último pago' , min(p.fecha_pago) as 'Fecha primer Pago' 
+from pago as p
+join cliente as c
+on p.codigo_cliente = c.codigo_cliente
+group by c.codigo_cliente, c.nombre_cliente;
+
 /*12. Calcula el número de productos diferentes que hay en cada uno de los pedidos.*/
+select d.codigo_pedido, count(distinct(d.codigo_producto)) as 'Cantidad de productos distintos'
+from detalle_pedido as d
+group by d.codigo_pedido
+order by d.codigo_pedido;
+
 /*13. Calcula la suma de la cantidad total de todos los productos que aparecen en cada uno de
 los pedidos.*/
+select d.codigo_pedido, sum(d.cantidad) as 'Total Unidades'
+from detalle_pedido as d
+group by d.codigo_pedido;
+
 /*14. Devuelve un listado de los 20 productos más vendidos y el número total de unidades que
 se han vendido de cada uno. El listado deberá estar ordenado por el número total de
 unidades vendidas.*/
+SELECT 
+    d.codigo_producto, SUM(d.cantidad) AS 'cantidad vendida'
+FROM
+    detalle_pedido AS d
+GROUP BY d.codigo_producto
+ORDER BY SUM(d.cantidad) DESC
+LIMIT 20;
+
 /*15. La facturación que ha tenido la empresa en toda la historia, indicando la base imponible, el
 IVA y el total facturado. La base imponible se calcula sumando el coste del producto por el
 número de unidades vendidas de la tabla detalle_pedido. El IVA es el 21 % de la base
 imponible, y el total la suma de los dos campos anteriores.*/
+SELECT 
+    SUM(d.cantidad * d.precio_unidad) AS 'base imponible',
+    SUM(d.cantidad * d.precio_unidad * 0.21) AS 'IVA',
+    SUM(d.cantidad * d.precio_unidad * 1.21) AS 'Total'
+FROM
+    detalle_pedido AS d;
+
 /*16. La misma información que en la pregunta anterior, pero agrupada por código de producto.*/
+SELECT 
+    d.codigo_producto AS 'Cod Producto',
+    SUM(d.cantidad * d.precio_unidad) AS 'base imponible',
+    SUM(d.cantidad * d.precio_unidad * 0.21) AS 'IVA',
+    SUM(d.cantidad * d.precio_unidad * 1.21) AS 'Total'
+FROM
+    detalle_pedido AS d
+GROUP BY d.codigo_producto
+ORDER BY d.codigo_producto ASC;
+
 /*17. La misma información que en la pregunta anterior, pero agrupada por código de producto
 filtrada por los códigos que empiecen por OR.*/
+SELECT 
+    SUM(d.cantidad * d.precio_unidad) AS 'base imponible',
+    SUM(d.cantidad * d.precio_unidad * 0.21) AS 'IVA',
+    SUM(d.cantidad * d.precio_unidad * 1.21) AS 'Total'
+FROM
+    detalle_pedido AS d;
+
+/*16. La misma información que en la pregunta anterior, pero agrupada por código de producto.*/
+SELECT 
+    d.codigo_producto AS 'Cod Producto',
+    p.nombre as 'Descripción',
+    SUM(d.cantidad * d.precio_unidad) AS 'base imponible',
+    SUM(d.cantidad * d.precio_unidad * 0.21) AS 'IVA',
+    SUM(d.cantidad * d.precio_unidad * 1.21) AS 'Total'
+FROM
+    detalle_pedido AS d
+    inner join producto as p
+    on d.codigo_producto = p.codigo_producto
+    where p.nombre like 'OR%'
+GROUP BY d.codigo_producto, p.nombre
+ORDER BY d.codigo_producto ASC;
+
 /*18. Lista las ventas totales de los productos que hayan facturado más de 3000 euros. Se
 mostrará el nombre, unidades vendidas, total facturado y total facturado con impuestos (21%
 IVA)*/
+SELECT 
+    d.codigo_producto AS 'Cod Producto',
+    p.nombre AS 'Descripción',
+    SUM(d.cantidad * d.precio_unidad) AS 'base imponible',
+    SUM(d.cantidad * d.precio_unidad * 0.21) AS 'IVA',
+    SUM(d.cantidad * d.precio_unidad * 1.21) AS 'Total'
+FROM
+    detalle_pedido AS d
+        INNER JOIN
+    producto AS p ON d.codigo_producto = p.codigo_producto
+GROUP BY d.codigo_producto , p.nombre
+HAVING SUM(d.cantidad * d.precio_unidad) > 3000
+ORDER BY d.codigo_producto ASC;
+
 /*Subconsultas con operadores básicos de comparación*/
 /*1. Devuelve el nombre del cliente con mayor límite de crédito.*/
+select * from cliente
+order by limite_credito desc
+limit 1;
 /*2. Devuelve el nombre del producto que tenga el precio de venta más caro.*/
+select * from producto
+order by precio_venta desc
+limit 1;
 /*3. Devuelve el nombre del producto del que se han vendido más unidades. (Tenga en cuenta
 que tendrá que calcular cuál es el número total de unidades que se han vendido de cada
 producto a partir de los datos de la tabla detalle_pedido. Una vez que sepa cuál es el código
 del producto, puede obtener su nombre fácilmente.)*/
+select p.codigo_producto, p.nombre, sum(d.cantidad) as 'Cant.Vendida'
+from detalle_pedido as d
+join producto as p on
+d.codigo_producto = p.codigo_producto
+group by p.codigo_producto, p.nombre
+order by sum(d.cantidad) desc
+limit 1;
+
 /*4. Los clientes cuyo límite de crédito sea mayor que los pagos que haya realizado. (Sin utilizar
 INNER JOIN).*/
+select c.codigo_cliente, c.nombre_cliente, c.limite_credito, 
+(select sum(p.total) from pago as p where p.codigo_cliente = c.codigo_cliente) as 'Total Pagos' from cliente as c
+where c.limite_credito > (select sum(p.total) from pago as p where p.codigo_cliente = c.codigo_cliente);
+
 /*5. Devuelve el producto que más unidades tiene en stock.*/
+select * from producto
+order by cantidad_en_stock desc
+limit 1;
+
 /*6. Devuelve el producto que menos unidades tiene en stock.*/
+select * from producto
+order by cantidad_en_stock asc
+limit 1;
+
 /*7. Devuelve el nombre, los apellidos y el email de los empleados que están a cargo de Alberto
 Soria.*/
+select  e.nombre, e.apellido1, e.apellido2, e.codigo_jefe from empleado as e
+where e.codigo_jefe = (select j.codigo_empleado from empleado as j
+ where j.nombre  like '%alberto%' and j.apellido1 like '%soria%');
+ 
 /*Subconsultas con ALL y ANY*/
 /*1. Devuelve el nombre del cliente con mayor límite de crédito.*/
+
 /*2. Devuelve el nombre del producto que tenga el precio de venta más caro.*/
 /*3. Devuelve el producto que menos unidades tiene en stock.*/
 /*Subconsultas con IN y NOT IN*/
