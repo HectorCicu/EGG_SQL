@@ -588,35 +588,64 @@ ORDER BY d.codigo_producto ASC;
 
 /*Subconsultas con operadores básicos de comparación*/
 /*1. Devuelve el nombre del cliente con mayor límite de crédito.*/
-select * from cliente
-order by limite_credito desc
-limit 1;
+SELECT 
+    *
+FROM
+    cliente
+ORDER BY limite_credito DESC
+LIMIT 1;
 /*2. Devuelve el nombre del producto que tenga el precio de venta más caro.*/
-select * from producto
-order by precio_venta desc
-limit 1;
+SELECT 
+    *
+FROM
+    producto
+ORDER BY precio_venta DESC
+LIMIT 1;
 /*3. Devuelve el nombre del producto del que se han vendido más unidades. (Tenga en cuenta
 que tendrá que calcular cuál es el número total de unidades que se han vendido de cada
 producto a partir de los datos de la tabla detalle_pedido. Una vez que sepa cuál es el código
 del producto, puede obtener su nombre fácilmente.)*/
-select p.codigo_producto, p.nombre, sum(d.cantidad) as 'Cant.Vendida'
-from detalle_pedido as d
-join producto as p on
-d.codigo_producto = p.codigo_producto
-group by p.codigo_producto, p.nombre
-order by sum(d.cantidad) desc
-limit 1;
+SELECT 
+    p.codigo_producto,
+    p.nombre,
+    SUM(d.cantidad) AS 'Cant.Vendida'
+FROM
+    detalle_pedido AS d
+        JOIN
+    producto AS p ON d.codigo_producto = p.codigo_producto
+GROUP BY p.codigo_producto , p.nombre
+ORDER BY SUM(d.cantidad) DESC
+LIMIT 1;
 
 /*4. Los clientes cuyo límite de crédito sea mayor que los pagos que haya realizado. (Sin utilizar
 INNER JOIN).*/
-select c.codigo_cliente, c.nombre_cliente, c.limite_credito, 
-(select sum(p.total) from pago as p where p.codigo_cliente = c.codigo_cliente) as 'Total Pagos' from cliente as c
-where c.limite_credito > (select sum(p.total) from pago as p where p.codigo_cliente = c.codigo_cliente);
+SELECT 
+    c.codigo_cliente,
+    c.nombre_cliente,
+    c.limite_credito,
+    (SELECT 
+            SUM(p.total)
+        FROM
+            pago AS p
+        WHERE
+            p.codigo_cliente = c.codigo_cliente) AS 'Total Pagos'
+FROM
+    cliente AS c
+WHERE
+    c.limite_credito > (SELECT 
+            SUM(p.total)
+        FROM
+            pago AS p
+        WHERE
+            p.codigo_cliente = c.codigo_cliente);
 
 /*5. Devuelve el producto que más unidades tiene en stock.*/
-select * from producto
-order by cantidad_en_stock desc
-limit 1;
+SELECT 
+    *
+FROM
+    producto
+ORDER BY cantidad_en_stock DESC
+LIMIT 1;
 
 /*6. Devuelve el producto que menos unidades tiene en stock.*/
 select * from producto
@@ -625,26 +654,168 @@ limit 1;
 
 /*7. Devuelve el nombre, los apellidos y el email de los empleados que están a cargo de Alberto
 Soria.*/
-select  e.nombre, e.apellido1, e.apellido2, e.codigo_jefe from empleado as e
-where e.codigo_jefe = (select j.codigo_empleado from empleado as j
- where j.nombre  like '%alberto%' and j.apellido1 like '%soria%');
+SELECT 
+    e.nombre, e.apellido1, e.apellido2, e.codigo_jefe
+FROM
+    empleado AS e
+WHERE
+    e.codigo_jefe = (SELECT 
+            j.codigo_empleado
+        FROM
+            empleado AS j
+        WHERE
+            j.nombre LIKE '%alberto%'
+                AND j.apellido1 LIKE '%soria%');
  
 /*Subconsultas con ALL y ANY*/
 /*1. Devuelve el nombre del cliente con mayor límite de crédito.*/
+SELECT 
+    c.nombre_cliente, c.limite_credito
+FROM
+    cliente AS c
+WHERE
+    c.limite_credito >= ALL (SELECT 
+            d.limite_credito
+        FROM
+            cliente AS d);
 
 /*2. Devuelve el nombre del producto que tenga el precio de venta más caro.*/
+SELECT 
+    p.nombre, p.precio_venta
+FROM
+    producto AS p
+WHERE
+    p.precio_venta >= ALL (SELECT 
+            g.precio_venta
+        FROM
+            producto AS g);
+
 /*3. Devuelve el producto que menos unidades tiene en stock.*/
+SELECT 
+    p.nombre, p.cantidad_en_stock
+FROM
+    producto AS p
+WHERE
+    p.cantidad_en_stock <= ALL (SELECT 
+            g.cantidad_en_stock
+        FROM
+            producto AS g);
+
 /*Subconsultas con IN y NOT IN*/
 /*1. Devuelve el nombre, apellido1 y cargo de los empleados que no representen a ningún
 cliente.*/
+SELECT 
+    e.nombre, e.apellido1, e.puesto
+FROM
+    empleado AS e
+WHERE
+    e.codigo_empleado NOT IN (SELECT 
+            c.codigo_empleado_rep_ventas
+        FROM
+            cliente AS c);
 /*2. Devuelve un listado que muestre solamente los clientes que no han realizado ningún pago.*/
+SELECT 
+    *
+FROM
+    cliente AS c
+WHERE
+    c.codigo_cliente NOT IN (SELECT 
+            p.codigo_cliente
+        FROM
+            pago AS p);
+            
 /*3. Devuelve un listado que muestre solamente los clientes que sí han realizado ningún pago.*/
+SELECT 
+    *
+FROM
+    cliente AS c
+WHERE
+    c.codigo_cliente IN (SELECT 
+            p.codigo_cliente
+        FROM
+            pago AS p);
+            
 /*4. Devuelve un listado de los productos que nunca han aparecido en un pedido.*/
+SELECT 
+    *
+FROM producto AS p
+WHERE
+    p.codigo_producto NOT IN (SELECT 
+            d.codigo_producto
+        FROM
+            detalle_pedido AS d);
+		
 /*5. Devuelve el nombre, apellidos, puesto y teléfono de la oficina de aquellos empleados que
 no sean representante de ventas de ningún cliente.*/
+SELECT 
+    e.nombre,
+    e.apellido1,
+    e.apellido2,
+    e.puesto,
+    (SELECT 
+            o.telefono
+        FROM
+            oficina AS o
+        WHERE
+            o.codigo_oficina = e.codigo_oficina) AS 'Telefono'
+FROM
+    empleado AS e
+WHERE
+    e.codigo_empleado NOT IN (SELECT 
+            c.codigo_empleado_rep_ventas
+        FROM
+            cliente AS c); 
+
 /*Subconsultas con EXISTS y NOT EXISTS*/
 /*1. Devuelve un listado que muestre solamente los clientes que no han realizado ningún
 pago.*/
+SELECT 
+    *
+FROM
+    cliente AS c
+WHERE
+    NOT EXISTS( SELECT 
+            1
+        FROM
+            pago AS p
+        WHERE
+            p.codigo_cliente = c.codigo_cliente);
+            
 /*2. Devuelve un listado que muestre solamente los clientes que sí han realizado ningún pago.*/
+SELECT 
+    *
+FROM
+    cliente AS c
+WHERE
+    EXISTS( SELECT 
+            1
+        FROM
+            pago AS p
+        WHERE
+            p.codigo_cliente = c.codigo_cliente);
+            
 /*3. Devuelve un listado de los productos que nunca han aparecido en un pedido.*/
+SELECT 
+    *
+FROM
+    producto AS p
+WHERE
+    NOT EXISTS( SELECT 
+            1
+        FROM
+            detalle_pedido AS d
+        WHERE
+            p.codigo_producto = d.codigo_producto);
+            
 /*4. Devuelve un listado de los productos que han aparecido en un pedido alguna vez.*/
+SELECT 
+    *
+FROM
+    producto AS p
+WHERE
+    EXISTS( SELECT 
+            1
+        FROM
+            detalle_pedido AS d
+        WHERE
+            p.codigo_producto = d.codigo_producto);
