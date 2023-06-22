@@ -47,9 +47,49 @@ where j.nombre = 'Pau Gasol'
 and temporada = '04/05';
 
 /*10. Mostrar el número de puntos de cada jugador en toda su carrera.*/
-select j.codigo, j.nombre, j.Nombre_equipo, 
-(select sum(puntos_por_partido) from estadisticas as e where j.codigo = e.jugador ) as puntos
-from jugadores as j;
+SELECT 
+    ju.codigo,
+    ju.nombre,
+    ju.Nombre_equipo,
+    (SELECT 
+            SUM((e.puntos_por_partido) * (SELECT 
+                        COUNT(1)
+                    FROM
+                        partidos AS p
+                    WHERE
+                        (ju.Nombre_equipo = p.equipo_local
+                            OR ju.nombre_equipo = p.equipo_visitante)
+                            AND p.temporada = e.temporada))
+        FROM
+            estadisticas AS e
+        WHERE
+            ju.codigo = e.jugador) AS 'Puntos Totales'
+FROM
+    jugadores AS ju
+GROUP BY ju.codigo , ju.nombre , ju.Nombre_equipo;
+
+/*SELECT 
+    ju.codigo,
+    ju.nombre,
+    ju.Nombre_equipo,
+    e.temporada,
+    sum(e.Puntos_por_partido *  (select count(1) from partidos as p where (ju.nombre_equipo = p.equipo_local or ju.nombre_equipo = p.equipo_visitante)
+     and e.temporada= p.temporada)) as 'Puntos Totales'  
+    from jugadores as ju
+    join estadisticas as e on 
+    ju.codigo = e.jugador
+    group by ju.codigo, ju.nombre, ju.Nombre_equipo, e.temporada ;*/
+select * from estadisticas where jugador = 1;
+select * from jugadores where codigo = 1;
+SELECT 
+    temporada, COUNT(1) AS cantpartidos
+FROM
+    partidos
+WHERE
+    (equipo_local = 'Timberwolves'
+        OR equipo_visitante = 'Timberwolves')
+GROUP BY temporada;
+
 
 /*11. Mostrar el número de jugadores de cada equipo.*/
 select Nombre_equipo, count(1) as  'Cant Jugadores' from jugadores
@@ -79,6 +119,7 @@ on p.equipo_local = l.Nombre
 join equipos as v
 on p.equipo_visitante = v.Nombre
 where l.division = 'Pacific' and v.Division = 'Pacific';
+
 /*15. Mostrar el partido o partidos (equipo_local, equipo_visitante y diferencia) con mayor
 diferencia de puntos.*/
 select equipo_local  as  'Eq. Local', puntos_local as 'Puntos Local',
