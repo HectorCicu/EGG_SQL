@@ -50,7 +50,7 @@ FROM
         JOIN
     tipo AS t ON tp.id_tipo = t.id_tipo
 WHERE
-    t.nombre IN ('agua' , 'tierra', 'fuego')
+    t.nombre IN ('volador', 'fuego')
 ORDER BY t.nombre ASC; 
 
 /*6. Mostrar los pokemon con una estadística base de ps mayor que 200.*/
@@ -180,22 +180,24 @@ WHERE
 GROUP BY p.numero_pokedex , p.nombre , m.id_movimiento , t.tipo_aprendizaje , t.id_tipo_aprendizaje;
 
 /*17. Mostrar todos los movimientos de tipo normal que aprende pikachu por nivel.*/
--- ????????????????????????????????????????????????????????????????????
-select * from cantidad_tipo_pokemon;
-
 SELECT 
-*
- FROM
+    p.numero_pokedex as 'Nro. Pokedex',
+    p.nombre	 as 'Nombre',
+    m.id_movimiento as 'ID. Movimiento',
+    mv.nombre as 'Nombre Movimiento',
+    mv.descripcion as 'Descripción',
+    t.nombre as 'Tipo'
+FROM
     pokemon AS p
-        left JOIN
-  pokemon_forma_evolucion as f on
-  p.numero_pokedex = f.numero_pokedex
-  left join forma_evolucion as fe on
-  f.id_forma_evolucion = fe.id_forma_evolucion
-  left join nivel_evolucion as n on
-  fe.id_forma_evolucion = n.id_forma_evolucion
+        LEFT JOIN
+    pokemon_movimiento_forma AS m ON p.numero_pokedex = m.numero_pokedex
+        LEFT JOIN
+    movimiento AS mv ON m.id_movimiento = mv.id_movimiento
+        LEFT JOIN
+    tipo AS t ON mv.id_tipo = t.id_tipo
 WHERE
-    p.nombre LIKE '%pikachu%';
+    p.nombre LIKE '%pikachu%'
+        AND t.nombre = 'normal';
 
 /*18. Mostrar todos los movimientos de efecto secundario cuya probabilidad sea mayor al 30%.*/
 SELECT 
