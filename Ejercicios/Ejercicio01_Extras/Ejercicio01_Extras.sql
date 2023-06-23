@@ -127,6 +127,7 @@ equipo_visitante as 'Eq. Visitante',  puntos_visitante as 'Puntos Visitantes',
  abs(puntos_local - puntos_visitante) as 'Diferencia' , temporada from partidos
  order by abs(puntos_local - puntos_visitante) desc
  limit 1;
+ 
 /*16. Mostrar la media de puntos en partidos de los equipos de la división Pacific.*/
 select avg(p.puntos_local) as 'Promedio Local', avg(p.puntos_visitante) as 'Promedio Visitante' from partidos as p
 join equipos as l
@@ -134,6 +135,7 @@ on p.equipo_local = l.Nombre
 join equipos as v
 on p.equipo_visitante = v.Nombre
 where l.division = 'Pacific' and v.Division = 'Pacific';
+
 /*17. Mostrar los puntos de cada equipo en los partidos, tanto de local como de visitante.*/
 select e.nombre, 
 (select sum(pl.puntos_local) from partidos as pl where e.nombre = equipo_local) as 'Puntos de Local',

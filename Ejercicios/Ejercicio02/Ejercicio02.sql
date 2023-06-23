@@ -1,5 +1,5 @@
 use tienda;
-
+select p.nombre as 'Nombre Producto', p.precio as 'Precio Producto' from producto as p where p.precio >= 120;
 /* Lista el nombre de todos los productos que hay en la tabla producto.*/
 select nombre as 'Nombre producto' from producto;
 

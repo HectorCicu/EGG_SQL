@@ -1,4 +1,4 @@
-use tienta;
+use tienda;
 /*Consultas Multitabla*/
 /*1. Devuelve una lista con el código del producto, nombre del producto, código del fabricante
 y nombre del fabricante, de todos los productos de la base de datos.*/
@@ -110,8 +110,6 @@ where f.nombre = 'LENOVO'
 order by p.precio asc
 limit 1;
 
-
-
 /*4. Lista todos los productos del fabricante Asus que tienen un precio superior al precio
 medio de todos sus productos.*/
 select p.codigo as 'Codigo Producto' , p.nombre as 'Nombre Producto', p.precio as 'Precio', 
@@ -123,7 +121,11 @@ where f.nombre = 'ASUS'
 and p.precio > (select avg(precio)
 from  producto as pr 
 where pr.codigo_fabricante = (select codigo from fabricante where nombre = 'ASUS'));
-
+select* from producto where codigo_fabricante = 1;
+select avg(precio)from  producto as pr;
+ select avg(precio)
+from  producto as pr 
+where pr.codigo_fabricante = (select codigo from fabricante where nombre = 'ASUS');
 /*Subconsultas con IN y NOT IN*/
 /*1. Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando IN o
 NOT IN).*/
@@ -142,3 +144,5 @@ de productos que el fabricante Lenovo.*/
 select * 
 from  producto as p
 having p.codigo_fabricante = (select codigo from fabricante where nombre = 'Lenovo') ; 
+
+

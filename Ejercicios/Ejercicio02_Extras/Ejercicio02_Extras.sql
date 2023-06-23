@@ -1,3 +1,4 @@
+use jardineria;
 /*Consultas sobre una tabla*/
 /*1. Devuelve un listado con el código de oficina y la ciudad donde hay oficinas.*/
 select codigo_oficina, ciudad from oficina;
@@ -241,6 +242,7 @@ SELECT
     e.apellido2 AS 'Apellido 2 empleado',
     e.codigo_jefe AS 'Cód jefe del empleado',
     e.puesto AS 'Puesto del Empleado',
+    j.codigo_empleado as 'Legajo del jefe',
     j.nombre AS 'Nombre Jefe',
     j.apellido1 AS 'Apellido Jefe',
     j.apellido2 AS 'Apellido2 jefe',
@@ -249,10 +251,12 @@ FROM
     empleado AS e
         JOIN
     empleado AS j ON e.codigo_jefe = j.codigo_empleado;
+    
+    select * from empleado;
    
 /*   9. Devuelve el nombre de los clientes a los que no se les ha entregado a tiempo un pedido.*/
 SELECT 
-    c.nombre_cliente
+    c.nombre_cliente, p.fecha_entrega, p.fecha_esperada, datediff(p.fecha_esperada, p.fecha_entrega) as 'dias'
 FROM
     cliente AS c
         INNER JOIN
@@ -286,20 +290,19 @@ GROUP BY c.nombre_cliente , g.gama , g.descripcion_texto , g.descripcion_html , 
 SELECT 
     c.nombre_cliente AS 'Razón Social',
     c.codigo_empleado_rep_ventas,
-    e.codigo_empleado as 'Codigo tabla empleado',
+    e.codigo_empleado AS 'Codigo tabla empleado',
     e.nombre AS 'Nombre Rep. Vtas.',
     e.apellido1 AS 'Apellido',
     e.apellido2 AS 'Segundo Apellido'
- 
 FROM
     cliente AS c
         INNER JOIN
     empleado AS e ON c.codigo_empleado_rep_ventas = e.codigo_empleado
-        left JOIN
+        LEFT JOIN
     pago AS p ON c.codigo_cliente = p.codigo_cliente
 WHERE
-  ( p.total is null)
-GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2, c.codigo_empleado_rep_ventas, e.codigo_empleado;
+    (p.total IS NULL)
+GROUP BY c.nombre_cliente , e.nombre , e.apellido1 , e.apellido2 , c.codigo_empleado_rep_ventas , e.codigo_empleado;
 
 /*2. Devuelve un listado que muestre solamente los clientes que no han realizado ningún
 pedido.*/
@@ -357,9 +360,9 @@ FROM
     cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
 WHERE
     (codigo_oficina IS NULL
-        OR c.codigo_empleado_rep_ventas IS NULL)
+        and c.codigo_empleado_rep_ventas IS NULL)
 GROUP BY e.nombre , e.apellido1 , e.apellido2;
-    
+
 /*7. Devuelve un listado de los productos que nunca han aparecido en un pedido.*/
 SELECT 
     p.codigo_producto, p.nombre, p.gama
@@ -416,15 +419,24 @@ GROUP BY c.codigo_cliente , c.nombre_cliente , c.linea_direccion1 , c.ciudad , c
 ;
 /*10. Devuelve un listado con los datos de los empleados que no tienen clientes asociados y el
 nombre de su jefe asociado.*/
-select 
-e.codigo_empleado, e.nombre, e.apellido1, e.apellido2, e.codigo_jefe, e.puesto, b.nombre as 'Nombre Jefe',
-b.apellido1 as 'Apellido', b.puesto as 'Puesto'
- from empleado as e
- left join cliente as c
- on e.codigo_empleado = c.codigo_empleado_rep_ventas
- left join empleado as b
- on e.codigo_jefe = b.codigo_empleado
- where c.codigo_empleado_rep_ventas is null;
+SELECT 
+    e.codigo_empleado,
+    e.nombre,
+    e.apellido1,
+    e.apellido2,
+    e.codigo_jefe,
+    e.puesto,
+    b.nombre AS 'Nombre Jefe',
+    b.apellido1 AS 'Apellido',
+    b.puesto AS 'Puesto'
+FROM
+    empleado AS e
+        LEFT JOIN
+    cliente AS c ON e.codigo_empleado = c.codigo_empleado_rep_ventas
+        LEFT JOIN
+    empleado AS b ON e.codigo_jefe = b.codigo_empleado
+WHERE
+    c.codigo_empleado_rep_ventas IS NULL;
  
 /*Consultas resumen*/
 /*1. ¿Cuántos empleados hay en la compañía?*/
