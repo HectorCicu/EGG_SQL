@@ -281,7 +281,8 @@ FROM
     producto AS pr ON d.codigo_producto = pr.codigo_producto
         INNER JOIN
     gama_producto AS g ON pr.gama = g.gama
-GROUP BY c.nombre_cliente , g.gama , g.descripcion_texto , g.descripcion_html , g.imagen;
+GROUP BY c.nombre_cliente , g.gama , g.descripcion_texto , g.descripcion_html , g.imagen
+order by c.nombre_cliente asc;
 
 
 /*Consultas multitabla (Composición externa)*/
@@ -618,14 +619,14 @@ que tendrá que calcular cuál es el número total de unidades que se han vendid
 producto a partir de los datos de la tabla detalle_pedido. Una vez que sepa cuál es el código
 del producto, puede obtener su nombre fácilmente.)*/
 SELECT 
-    p.codigo_producto,
-    p.nombre,
+     d.codigo_producto,
+    (SELECT  p.nombre  FROM producto AS p
+        WHERE d.codigo_producto = p.codigo_producto) AS 'Producto',
+        
     SUM(d.cantidad) AS 'Cant.Vendida'
 FROM
     detalle_pedido AS d
-        JOIN
-    producto AS p ON d.codigo_producto = p.codigo_producto
-GROUP BY p.codigo_producto , p.nombre
+GROUP BY d.codigo_producto
 ORDER BY SUM(d.cantidad) DESC
 LIMIT 1;
 
