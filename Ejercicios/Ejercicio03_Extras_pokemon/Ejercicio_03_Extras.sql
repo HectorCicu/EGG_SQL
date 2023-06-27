@@ -1,3 +1,4 @@
+use pokemondb;
 /*A continuación, se deben realizar las siguientes consultas:*/
 /*1. Mostrar el nombre de todos los pokemon.*/
 SELECT 

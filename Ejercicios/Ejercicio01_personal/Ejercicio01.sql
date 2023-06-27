@@ -11,6 +11,11 @@ select * from departamentos where ciudad like '%Ciudad Real%';  /* 9 */
 select nombre as Nombre, cargo_emp as Cargo from empleados; /* 10 */
 select nombre as Nombre, sal_emp  as Salario, comision_emp as Comision , id_depto as Departamento
 from empleados where id_depto = 2000 order by comision_emp asc; /* 11 */
+select *
+from empleados inner join departamentos on empleados.id_depto = departamentos.id_depto 
+where empleados.id_depto = 2000 order by comision_emp asc; /* 11 */
+
+
 select nombre as Nombre, (sal_emp + comision_emp + 500) as 'Total a Pagar'
 from empleados where id_depto = 3000 order by nombre ASC; /* 12 */
 select nombre as Nombre from empleados where nombre like 'j%'; /* 13 */
