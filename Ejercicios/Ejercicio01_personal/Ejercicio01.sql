@@ -29,7 +29,8 @@ select * from departamentos where (nombre_depto like '%ventas%'or nombre_depto l
 select * from departamentos where departamentos.nombre_depto not in ('ventas', 'investigacion', 'mantenimiento');  /* 20 */
 select * from departamentos where (nombre_depto not like '%ventas%'and nombre_depto not like '%investigacion%' and nombre_depto not like '%mantenimiento%'); /* 20 */
 
-select max(sal_emp) from empleados; /* 21 */
+SELECT max(sal_emp) , nombre FROM empleados GROUP BY nombre ORDER BY max(sal_emp) LIMIT 1; /* 21 */
+
 /* select e.nombre 
 from departamentos d, empleados e
 where d.id_depto= e.id_depto  and ciudad = "CIUDAD REAL"
